@@ -109,8 +109,12 @@ class LoopPageController {
     int page, {
     required Duration duration,
     required Curve curve,
+    bool forward =
+        false, // if true, the animation will be forced to move forwards
+    bool backward =
+        false, // if true, the animation will be forced to move backwards
   }) {
-    final shiftedPage = _shiftPage(page);
+    final shiftedPage = _shiftPage(page, forward: forward, backward: backward);
 
     if (shiftedPage == _currentShiftedPage) return Future.value();
 
@@ -210,7 +214,7 @@ class LoopPageController {
     return difference;
   }
 
-  int _shiftPage(int page) {
+  int _shiftPage(int page, {bool backward = false, bool forward = false}) {
     final modPage = _itemCount > 0 ? (page % _itemCount) : page;
 
     final int instantCurrentShiftedPage = _currentShiftedPage;
@@ -228,11 +232,25 @@ class LoopPageController {
             ? 0
             : distance + _itemCount;
 
-    final int shiftedPage = distance.abs() <= oppositeDistance.abs()
-        ? instantCurrentShiftedPage + distance
-        : instantCurrentShiftedPage + oppositeDistance;
+    if (backward) {
+      if (distance < 0) {
+        return instantCurrentShiftedPage + distance;
+      } else {
+        return instantCurrentShiftedPage + oppositeDistance;
+      }
+    } else if (forward) {
+      if (distance > 0) {
+        return instantCurrentShiftedPage + distance;
+      } else {
+        return instantCurrentShiftedPage + oppositeDistance;
+      }
+    } else {
+      final int shiftedPage = distance.abs() <= oppositeDistance.abs()
+          ? instantCurrentShiftedPage + distance
+          : instantCurrentShiftedPage + oppositeDistance;
 
-    return shiftedPage;
+      return shiftedPage;
+    }
   }
 
   /// Updates _currentShiftedPage to be equal current [PageController] page.
